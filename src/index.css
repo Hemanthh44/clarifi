@@ -1,0 +1,278 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --background: #FFFFFF;
+  --foreground: #181A2A;
+
+  --text-primary: #181A2A;
+  --text-secondary: #52586B;
+  --text-muted: #7E8597;
+
+  --border: #EDE7EB;
+
+  --accent-berry: #047857;
+  --accent-rose: #10B981;
+  --accent-coral: #34D399;
+  --accent-rose-light: #ECFDF5;
+
+  --accent-green: #047857;
+
+  --button-primary: #047857;
+  --button-primary-text: #FFFFFF;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: #FFFFFF;
+  color: #181A2A;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  background-color: #FFFFFF;
+  color: #181A2A;
+}
+
+/* Ensure strong, readable typography hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  color: #181A2A;
+  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  letter-spacing: -0.025em;
+}
+
+p {
+  color: #52586B;
+}
+
+/* High-contrast utility classes */
+.text-text-primary, .text-primary {
+  color: #181A2A !important;
+}
+
+.text-text-secondary, .text-secondary {
+  color: #52586B !important;
+}
+
+.text-text-muted, .text-muted {
+  color: #7E8597 !important;
+}
+
+.bg-brand-berry {
+  background-color: #047857 !important;
+}
+
+.text-brand-berry {
+  color: #047857 !important;
+}
+
+.border-brand-berry {
+  border-color: #047857 !important;
+}
+
+.bg-brand-roseLight {
+  background-color: #ECFDF5 !important;
+}
+
+.border-brand-roseBorder {
+  border-color: #D1FAE5 !important;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.18);
+  color: #181A2A;
+}
+
+:focus-visible {
+  outline: 2px solid #047857;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+input, textarea, select, button {
+  font: inherit;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #8E95A5;
+  opacity: 1;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.3;
+}
+
+/* Understated clean scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(24, 26, 42, 0.12);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(4, 120, 87, 0.28);
+  background-clip: content-box;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer components {
+  /* ── Clean Surfaces & Cards ─────────────────────── */
+  .cf-glass {
+    background: #FFFFFF;
+    border: 1px solid #EDE7EB;
+    box-shadow: 0 1px 3px rgba(24, 26, 42, 0.03), 0 8px 24px -4px rgba(4, 120, 87, 0.04);
+  }
+
+  .cf-glass-soft {
+    background: #F8FAF9;
+    border: 1px solid #EDE7EB;
+  }
+
+  /* Accent highlight along the top edge of selected cards */
+  .cf-glass-sheen {
+    position: relative;
+  }
+  .cf-glass-sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    background: linear-gradient(90deg, #047857 0%, #10B981 50%, #34D399 100%);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .cf-hover-lift {
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+  }
+  .cf-hover-lift:hover {
+    transform: translateY(-2px);
+    border-color: #A7F3D0;
+    box-shadow: 0 4px 14px -2px rgba(4, 120, 87, 0.08), 0 16px 32px -6px rgba(24, 26, 42, 0.06);
+  }
+
+  .cf-page {
+    min-height: 100vh;
+    background-color: #FFFFFF;
+  }
+
+  .cf-eyebrow {
+    @apply text-[0.72rem] font-semibold tracking-[0.16em] uppercase font-mono;
+    color: #047857;
+  }
+
+  .cf-title {
+    @apply font-sans font-bold tracking-[-0.025em];
+    color: #181A2A;
+  }
+
+  .cf-gradient-text {
+    background: linear-gradient(135deg, #047857 0%, #059669 40%, #10B981 75%, #34D399 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .cf-gradient-sunset {
+    background: linear-gradient(135deg, #047857 0%, #059669 45%, #10B981 75%, #34D399 100%);
+  }
+
+  /* ── Inputs ───────────────────────────────────────────── */
+  .cf-input {
+    @apply text-text-primary outline-none transition-all duration-200 bg-white;
+    color: #181A2A;
+    border: 1px solid #EDE7EB;
+    border-radius: 0.75rem;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+  .cf-input:hover {
+    border-color: #A7F3D0;
+  }
+  .cf-input:focus {
+    border-color: #047857;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+
+  /* ── Soft Emerald Ambient Glow ───────────────────── */
+  .editorial-hero-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 520px;
+    background: radial-gradient(ellipse 80% 65% at 50% -15%, rgba(236, 253, 245, 0.95) 0%, rgba(240, 253, 244, 0.5) 50%, rgba(255, 255, 255, 0) 85%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .editorial-ambient-glow {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(70px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Dark Status / Box ──────────────────────────────────── */
+  .editorial-status-box {
+    background: #181A2A;
+    color: #FFFFFF;
+    border-radius: 1.25rem;
+    box-shadow: 0 18px 45px -12px rgba(24, 26, 42, 0.25);
+  }
+
+  /* ── Fernhill Pill Badge ────────────────────────────────── */
+  .fernhill-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.95rem;
+    border-radius: 9999px;
+    background-color: #ECFDF5;
+    border: 1px solid #D1FAE5;
+    color: #047857;
+    font-weight: 500;
+    font-size: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .cf-hover-lift:hover {
+    transform: none;
+  }
+}

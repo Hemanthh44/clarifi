@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: clarifi-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      # Render cannot use Supabase's direct IPv6 database endpoint reliably,
+      # so supply the Supabase Supavisor Session pooler URI as DATABASE_URL.
+      - key: DATABASE_URL
+        sync: false
+      - key: CLARIFI_ENVIRONMENT
+        value: production
+      # Signing key for auth tokens. generateValue lets Render create a
+      # strong random secret once and keep it stable across deploys —
+      # rotating it logs every user out.
+      - key: CLARIFI_JWT_SECRET
+        generateValue: true
+      - key: CLARIFI_FRONTEND_ORIGIN
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: clarifi-documents
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLARIFI_LLM_MODEL
+        value: gemini-2.5-flash-lite
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: CLARIFI_TAVILY_MAX_RESULTS
+        value: "6"
