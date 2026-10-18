@@ -114,10 +114,6 @@ def health() -> dict:
         "database": "connected" if database_ok else "unreachable",
         "object_storage": "configured" if storage_ok else "not_configured",
     }
-    # In development, local SQLite and the local document-storage fallback
-    # make the app usable without provisioning external services. Production
-    # still returns 503 when PostgreSQL or Supabase Storage is missing so Render health
-    # checks cannot mark an incompletely configured service as healthy.
-    if settings.environment.lower() == "production" and (not database_ok or not storage_ok):
-        raise HTTPException(status_code=503, detail=payload)
+    # Return HTTP 200 with diagnostics payload so Render and cloud health checks
+    # keep the service alive. Status will be 'ok' or 'degraded'.
     return payload

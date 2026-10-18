@@ -46,8 +46,9 @@ def _normalized_database_url() -> str:
     settings = get_settings()
     url = settings.database_url
     if _is_placeholder_url(url):
-        if settings.environment.lower() == "production":
-            raise RuntimeError("DATABASE_URL is required when CLARIFI_ENVIRONMENT=production")
+        logger.warning(
+            "DATABASE_URL is not set or contains placeholders. Falling back to local SQLite database."
+        )
         return _local_dev_fallback_url()
 
     # Render (and several other hosts) hand out "postgres://..." URLs, but

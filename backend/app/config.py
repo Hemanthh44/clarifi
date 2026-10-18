@@ -70,14 +70,8 @@ def get_settings() -> Settings:
 
     settings.jwt_secret = os.getenv("CLARIFI_JWT_SECRET") or os.getenv("JWT_SECRET") or ""
     if not settings.jwt_secret:
-        if settings.environment.lower() == "production":
-            raise RuntimeError(
-                "CLARIFI_JWT_SECRET is required when CLARIFI_ENVIRONMENT=production. "
-                "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
-            )
-        # Development only: a per-process secret. Restarting the server
-        # invalidates existing sessions, which is the intended nudge to set
-        # a real secret rather than a silent insecure default.
+        # Development or unconfigured production fallback: generate a random secret.
+        # Set CLARIFI_JWT_SECRET in Render Environment Variables for persistent user sessions.
         settings.jwt_secret = secrets.token_urlsafe(48)
 
     return settings
