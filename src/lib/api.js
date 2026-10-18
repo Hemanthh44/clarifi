@@ -356,6 +356,33 @@ export function rebalancePortfolio({ equity, debt, others, targetLabel = "Low Ri
   });
 }
 
+export function runRLSimulation({
+  startingValue = 500000,
+  equity = 60,
+  debt = 30,
+  others = 10,
+  horizonYears = 10,
+  monthlySip = 10000,
+  riskTolerance = "Balanced",
+}) {
+  return request("/api/ml/rl/simulate", {
+    method: "POST",
+    body: JSON.stringify({
+      starting_value: startingValue,
+      equity,
+      debt,
+      others,
+      horizon_years: horizonYears,
+      monthly_sip: monthlySip,
+      risk_tolerance: riskTolerance,
+    }),
+  });
+}
+
+export function getRLInfo() {
+  return request("/api/ml/rl/info");
+}
+
 
 // ============================================================
 // IMAGE ANALYSIS

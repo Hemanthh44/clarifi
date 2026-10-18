@@ -103,7 +103,7 @@ export function TokenSalienceBadges({ tokens }) {
   return (
     <div className="space-y-2 mt-4 pt-4 border-t border-[#EDE7EB]">
       <p className="text-[0.68rem] font-bold text-text-muted uppercase tracking-wider">
-        ML Token Attribution &amp; Salience (Feature Weights)
+        Key Trigger Phrases &amp; Risk Signals
       </p>
       <div className="flex flex-wrap gap-2">
         {tokens.map((t, i) => {
@@ -137,14 +137,14 @@ export function DualEngineScoreCard({ ruleScore, ruleLevel, mlAnalysis, ensemble
       <div className="flex items-center justify-between">
         <div>
           <span className="text-[0.68rem] font-bold text-brand-berry uppercase tracking-wide block">
-            DUAL-ENGINE FRAUD INTELLIGENCE
+            DUAL-LAYER FRAUD VERIFICATION
           </span>
           <span className="text-sm font-bold text-text-primary mt-0.5 block">
             Consensus Risk: {ensemblePct}% Risk Score
           </span>
         </div>
         <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-white border border-[#EDE7EB] font-bold text-text-primary shadow-xs">
-          Ensemble: {ensemblePct}/100
+          Combined: {ensemblePct}/100
         </span>
       </div>
 
@@ -152,26 +152,26 @@ export function DualEngineScoreCard({ ruleScore, ruleLevel, mlAnalysis, ensemble
         {/* Engine 1 */}
         <div className="p-3 bg-white rounded-xl border border-[#EDE7EB]">
           <span className="text-[0.65rem] text-text-muted font-bold block uppercase tracking-wider">
-            Engine 1: Regulatory Rules
+            Layer 1: Regulatory Rules
           </span>
           <span className="font-semibold text-text-primary mt-1 block">
             {ruleLevel}
           </span>
           <span className="text-[0.68rem] text-text-muted font-mono block mt-0.5">
-            Weight Score: {Math.round(ruleScore * 100)}%
+            Severity: {Math.round(ruleScore * 100)}%
           </span>
         </div>
 
         {/* Engine 2 */}
         <div className="p-3 bg-white rounded-xl border border-[#EDE7EB]">
           <span className="text-[0.65rem] text-brand-berry font-bold block uppercase tracking-wider">
-            Engine 2: Statistical ML NLP
+            Layer 2: Phishing &amp; Language Scanner
           </span>
           <span className="font-semibold text-text-primary mt-1 block">
             {mlAnalysis?.ml_label || "Evaluating..."}
           </span>
           <span className="text-[0.68rem] text-text-muted font-mono block mt-0.5">
-            Fraud Prob: {mlScorePct}% ({mlAnalysis?.ml_confidence ? `${Math.round(mlAnalysis.ml_confidence * 100)}% conf` : ""})
+            Threat Likelihood: {mlScorePct}% ({mlAnalysis?.ml_confidence ? `${Math.round(mlAnalysis.ml_confidence * 100)}% conf` : ""})
           </span>
         </div>
       </div>

@@ -29,14 +29,14 @@ def analyze(payload: ScamAnalyzeRequest) -> ScamAnalyzeResponse:
     ensemble_score = min(1.0, max(0.0, ensemble_score))
 
     detection_notes = (
-        "Dual-Engine Fraud Intelligence Architecture: "
-        "(1) Deterministic Rule Engine scans against SEBI enforcement patterns (guaranteed returns, "
-        "unregistered signals, urgency). "
-        "(2) Statistical Machine Learning Engine (TF-IDF + Logistic Regression) scores semantic token "
-        "salience trained on authentic vs fraudulent financial text."
+        "Dual-Layer Fraud Protection System: "
+        "(1) Regulatory Compliance Scanner checks against SEBI enforcement patterns (unregistered tips, "
+        "unrealistic return guarantees, false urgency). "
+        "(2) Language & Phishing Scanner analyzes message context and manipulation keywords "
+        "to distinguish genuine investment notices from illicit solicitations."
     )
 
-    add_history("Scam message analyzed", f"{result['risk_level']} (ML: {ml_result['ml_label']}) · {len(result['flags'])} pattern(s)")
+    add_history("Scam message analyzed", f"{result['risk_level']} ({ml_result['ml_label']}) · {len(result['flags'])} pattern(s)")
 
     ml_analysis_obj = MLScamAnalysis(
         ml_score=ml_result["ml_score"],

@@ -38,6 +38,20 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     mode = "LLM-assisted" if settings.gemini_api_key else "template mode (no GEMINI_API_KEY set)"
     logger.info("ClariFi backend ready — running in %s.", mode)
+
+    # Pre-warm strategy engines so user requests respond in <2ms
+    try:
+        from app.ml.document_classifier import _ensure_trained as _ensure_doc_trained
+        from app.ml.risk_classifier import _ensure_trained
+        from app.ml.rl_agent import get_trained_rl_agent
+        from app.ml.scam_classifier import get_scam_classifier
+        _ensure_trained()
+        get_trained_rl_agent()
+        get_scam_classifier()
+        _ensure_doc_trained()
+    except Exception as e:
+        logger.warning("Engine warm-up skipped: %s", e)
+
     yield
 
 

@@ -48,10 +48,10 @@ const tools = [
   {
     to: "/ml-lab",
     icon: Brain,
-    title: "ML & Quant Lab",
-    body: "Explainable ML risk model, feature attributions, and Monte Carlo wealth paths.",
+    title: "Strategy Lab",
+    body: "Intelligent portfolio risk profiling, key driver diagnostics, and long-term wealth projections.",
     tone: "text-brand-berry",
-    tag: "Machine Learning",
+    tag: "Strategy",
   },
   {
     to: "/scam-screener",

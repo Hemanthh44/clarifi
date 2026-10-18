@@ -170,7 +170,7 @@ class ScamClassifier:
                 "ml_label": "Likely Legitimate",
                 "ml_confidence": 0.5,
                 "top_tokens": [],
-                "model": "TF-IDF + Logistic Regression (NumPy)",
+                "model": "Intelligent Threat Scanner",
                 "metrics": self.metrics,
             }
 
@@ -216,7 +216,7 @@ class ScamClassifier:
             "ml_label": label,
             "ml_confidence": confidence,
             "top_tokens": token_attributions[:6],
-            "model": "TF-IDF + Logistic Regression (NumPy, trained from scratch)",
+            "model": "Intelligent Threat Scanner",
             "metrics": self.metrics,
         }
 

@@ -1,6 +1,12 @@
 from typing import Literal, Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
+
+try:
+    import email_validator  # noqa: F401
+    from pydantic import EmailStr
+except ImportError:
+    EmailStr = str  # type: ignore[assignment,misc]
 
 
 # ---------- Shared ----------
@@ -315,3 +321,60 @@ class AuthResponse(BaseModel):
     token_type: Literal["bearer"] = "bearer"
     expires_in: int
     user: UserPublic
+
+
+# ---------- Reinforcement Learning (RL) Portfolio Agent ----------
+
+class RLSimulateRequest(BaseModel):
+    starting_value: float = Field(gt=0, default=500000)
+    equity: float = Field(ge=0, le=100, default=60)
+    debt: float = Field(ge=0, le=100, default=30)
+    others: float = Field(ge=0, le=100, default=10)
+    horizon_years: int = Field(ge=1, le=30, default=10)
+    monthly_sip: float = Field(ge=0, default=10000)
+    risk_tolerance: Literal["Conservative", "Balanced", "Aggressive"] = "Balanced"
+
+
+class RLYearStep(BaseModel):
+    year: int
+    regime: str
+    action: str
+    action_label: str
+    rationale: str
+    equity_pct: float
+    debt_pct: float
+    others_pct: float
+    period_return_pct: float
+    portfolio_value: float
+
+
+class RLStrategyMetrics(BaseModel):
+    final_value: float
+    total_invested: float
+    net_gain: float
+    cumulative_return_pct: float
+    cagr_pct: float
+    sharpe_ratio: float
+    sortino_ratio: float
+    max_drawdown_pct: float
+    annual_volatility_pct: float
+
+
+class RLBenchmarkComparison(BaseModel):
+    rl_agent: RLStrategyMetrics
+    buy_and_hold: RLStrategyMetrics
+    fixed_60_40: RLStrategyMetrics
+
+
+class RLSimulateResponse(BaseModel):
+    model_config = {"protected_namespaces": ()}
+
+    executive_summary: str
+    parameters: dict
+    benchmarks: RLBenchmarkComparison
+    timeline: list[RLYearStep]
+    chart_data: list[dict]
+    action_distribution: list[dict]
+    training_convergence: list[dict]
+    actions_catalog: list[dict]
+    model_metadata: dict

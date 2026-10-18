@@ -27,7 +27,7 @@ const groups = [
       { to: "/ask", label: "Ask ClariFi", icon: MessageCircle },
       { to: "/product-explainer", label: "Product Explainer", icon: FileSearch },
       { to: "/risk-simulator", label: "Risk Simulator", icon: Activity },
-      { to: "/ml-lab", label: "ML & Quant Lab", icon: Brain },
+      { to: "/ml-lab", label: "Strategy Lab", icon: Brain },
       { to: "/scam-screener", label: "Scam Screener", icon: ShieldAlert },
     ],
   },

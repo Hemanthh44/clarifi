@@ -248,7 +248,7 @@ def predict_risk(equity: float, debt: float, others: float, horizon_years: float
         "probabilities": {CLASSES[i]: round(float(probs[i]), 3) for i in range(len(CLASSES))},
         "factors": factors,
         "feature_contributions": feature_contributions,
-        "model": "Multinomial logistic regression (numpy, trained from scratch)",
+        "model": "Algorithmic Risk Profiler",
         "dataset": "synthetic-demo — labels generated from a documented heuristic, not real market outcomes",
         "metrics": _metrics,
     }
