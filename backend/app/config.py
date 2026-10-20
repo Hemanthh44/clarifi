@@ -53,23 +53,41 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     settings = Settings()
-    settings.gemini_api_key = os.getenv("GEMINI_API_KEY") or None
-    settings.tavily_api_key = os.getenv("TAVILY_API_KEY") or None
-    settings.database_url = os.getenv("DATABASE_URL") or None
-    settings.supabase_url = os.getenv("SUPABASE_URL") or None
+    raw_gemini = os.getenv("GEMINI_API_KEY")
+    settings.gemini_api_key = raw_gemini.strip().strip('"').strip("'") if raw_gemini else None
+
+    raw_tavily = os.getenv("TAVILY_API_KEY")
+    settings.tavily_api_key = raw_tavily.strip().strip('"').strip("'") if raw_tavily else None
+
+    raw_db = os.getenv("DATABASE_URL")
+    settings.database_url = raw_db.strip().strip('"').strip("'") if raw_db else None
+
+    raw_supabase_url = os.getenv("SUPABASE_URL")
+    if raw_supabase_url:
+        cleaned_url = raw_supabase_url.strip().strip('"').strip("'")
+        if cleaned_url and not cleaned_url.startswith(("http://", "https://")):
+            cleaned_url = f"https://{cleaned_url}"
+        settings.supabase_url = cleaned_url.rstrip("/") if cleaned_url else None
+    else:
+        settings.supabase_url = None
+
     # Keep the requested legacy variable name working while also accepting
     # Supabase's newer secret-key name when users have migrated to it.
-    settings.supabase_service_role_key = (
+    raw_key = (
         os.getenv("SUPABASE_SERVICE_ROLE_KEY")
         or os.getenv("SUPABASE_SECRET_KEY")
-        or None
     )
+    settings.supabase_service_role_key = raw_key.strip().strip('"').strip("'") if raw_key else None
+
+    raw_bucket = os.getenv("SUPABASE_STORAGE_BUCKET")
     settings.supabase_storage_bucket = (
-        os.getenv("SUPABASE_STORAGE_BUCKET") or "clarifi-documents"
+        raw_bucket.strip().strip('"').strip("'") if raw_bucket else "clarifi-documents"
     )
 
     settings.jwt_secret = os.getenv("CLARIFI_JWT_SECRET") or os.getenv("JWT_SECRET") or ""
-    if not settings.jwt_secret:
+    if settings.jwt_secret:
+        settings.jwt_secret = settings.jwt_secret.strip().strip('"').strip("'")
+    else:
         # Development or unconfigured production fallback: generate a random secret.
         # Set CLARIFI_JWT_SECRET in Render Environment Variables for persistent user sessions.
         settings.jwt_secret = secrets.token_urlsafe(48)

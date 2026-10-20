@@ -34,11 +34,15 @@ def _is_placeholder_url(url: str | None) -> bool:
 
 
 def _local_dev_fallback_url() -> str:
-    logger.warning(
-        "DATABASE_URL is not set or contains placeholders — falling back to a local SQLite file "
-        "(clarifi_dev.db) for development. Set DATABASE_URL to a real "
-        "PostgreSQL connection string before deploying."
-    )
+    settings = get_settings()
+    if settings.environment == "production":
+        logger.warning(
+            "DATABASE_URL is not set or contains placeholders in production. "
+            "Falling back to a temporary local SQLite file (clarifi_dev.db). "
+            "Set DATABASE_URL in Render to your Supabase PostgreSQL connection string."
+        )
+    else:
+        logger.info("DATABASE_URL not set — using local SQLite database (clarifi_dev.db) for development.")
     return "sqlite:///./clarifi_dev.db"
 
 
@@ -46,9 +50,6 @@ def _normalized_database_url() -> str:
     settings = get_settings()
     url = settings.database_url
     if _is_placeholder_url(url):
-        logger.warning(
-            "DATABASE_URL is not set or contains placeholders. Falling back to local SQLite database."
-        )
         return _local_dev_fallback_url()
 
     # Render (and several other hosts) hand out "postgres://..." URLs, but

@@ -8,7 +8,7 @@ object key.
 from __future__ import annotations
 
 import logging
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from urllib.parse import quote
 
 import httpx
@@ -16,6 +16,9 @@ import httpx
 from app.config import get_settings
 
 logger = logging.getLogger("clarifi.storage")
+
+# Local filesystem storage directory used when Supabase Storage credentials are not set (e.g. local development)
+LOCAL_STORAGE_DIR = Path(__file__).resolve().parent.parent / "data" / "uploads"
 
 
 class StorageError(RuntimeError):
@@ -80,7 +83,7 @@ def _raise_response_error(response: httpx.Response, operation: str) -> None:
     except ValueError:
         detail = response.text[:300]
     logger.warning("Supabase Storage %s failed (%s): %s", operation, response.status_code, detail)
-    raise StorageError(f"Could not {operation} the file in Supabase Storage.")
+    raise StorageError(f"Could not {operation} the file in Supabase Storage: {detail} (HTTP {response.status_code}).")
 
 
 def build_object_key(document_id: str, filename: str) -> str:
@@ -90,6 +93,17 @@ def build_object_key(document_id: str, filename: str) -> str:
 
 
 def upload_bytes(object_key: str, data: bytes, content_type: str = "application/octet-stream") -> None:
+    if not is_configured():
+        try:
+            target_path = LOCAL_STORAGE_DIR / object_key
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            target_path.write_bytes(data)
+            logger.info("Supabase Storage not configured; saved file locally to %s", target_path)
+            return
+        except Exception as exc:
+            logger.warning("Local storage upload failed for %s: %s", object_key, exc)
+            raise StorageError(f"Could not save file to local storage: {exc}") from exc
+
     try:
         response = httpx.post(
             _object_url(object_key),
@@ -102,10 +116,22 @@ def upload_bytes(object_key: str, data: bytes, content_type: str = "application/
         raise
     except httpx.HTTPError as exc:
         logger.warning("Supabase Storage upload failed for %s: %s", object_key, exc)
-        raise StorageError("Could not upload the file to Supabase Storage. Please try again.") from exc
+        err_msg = str(exc).strip()
+        exc_type = type(exc).__name__
+        reason = f": {exc_type} ({err_msg})" if err_msg else f": {exc_type}"
+        raise StorageError(
+            f"Could not upload the file to Supabase Storage{reason}. "
+            "Please verify SUPABASE_URL, network connectivity, and that the Supabase project is active."
+        ) from exc
 
 
 def download_bytes(object_key: str) -> bytes:
+    if not is_configured():
+        target_path = LOCAL_STORAGE_DIR / object_key
+        if not target_path.exists():
+            raise StorageError(f"File not found in local storage: {object_key}")
+        return target_path.read_bytes()
+
     try:
         response = httpx.get(_object_url(object_key), headers=_headers(), timeout=60.0)
         _raise_response_error(response, "download")
@@ -114,10 +140,22 @@ def download_bytes(object_key: str) -> bytes:
         raise
     except httpx.HTTPError as exc:
         logger.warning("Supabase Storage download failed for %s: %s", object_key, exc)
-        raise StorageError("Could not read the file from Supabase Storage.") from exc
+        err_msg = str(exc).strip()
+        exc_type = type(exc).__name__
+        reason = f": {exc_type} ({err_msg})" if err_msg else f": {exc_type}"
+        raise StorageError(f"Could not read the file from Supabase Storage{reason}.") from exc
 
 
 def delete_object(object_key: str) -> None:
+    if not is_configured():
+        target_path = LOCAL_STORAGE_DIR / object_key
+        if target_path.exists():
+            try:
+                target_path.unlink()
+            except Exception as exc:
+                logger.warning("Could not delete local file %s: %s", target_path, exc)
+        return
+
     try:
         response = httpx.delete(_object_url(object_key), headers=_headers(), timeout=60.0)
         _raise_response_error(response, "delete")
@@ -125,10 +163,16 @@ def delete_object(object_key: str) -> None:
         raise
     except httpx.HTTPError as exc:
         logger.warning("Supabase Storage delete failed for %s: %s", object_key, exc)
-        raise StorageError("Could not delete the file from Supabase Storage.") from exc
+        err_msg = str(exc).strip()
+        exc_type = type(exc).__name__
+        reason = f": {exc_type} ({err_msg})" if err_msg else f": {exc_type}"
+        raise StorageError(f"Could not delete the file from Supabase Storage{reason}.") from exc
 
 
 def object_exists(object_key: str) -> bool:
+    if not is_configured():
+        return (LOCAL_STORAGE_DIR / object_key).exists()
+
     try:
         response = httpx.get(_object_url(object_key), headers=_headers(), timeout=30.0)
         if response.status_code == 404:
@@ -139,7 +183,10 @@ def object_exists(object_key: str) -> bool:
         raise
     except httpx.HTTPError as exc:
         logger.warning("Supabase Storage existence check failed for %s: %s", object_key, exc)
-        raise StorageError("Could not check Supabase Storage.") from exc
+        err_msg = str(exc).strip()
+        exc_type = type(exc).__name__
+        reason = f": {exc_type} ({err_msg})" if err_msg else f": {exc_type}"
+        raise StorageError(f"Could not check Supabase Storage{reason}.") from exc
 
 
 def public_url(object_key: str) -> str | None:
@@ -148,6 +195,8 @@ def public_url(object_key: str) -> str | None:
     ClariFi does not require public document URLs; uploaded documents are kept
     private and accessed server-side. This helper is retained for compatibility.
     """
+    if not is_configured():
+        return None
     settings = _settings()
     if not settings.supabase_url or not settings.supabase_storage_bucket:
         return None

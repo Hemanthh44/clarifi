@@ -108,11 +108,11 @@ def health() -> dict:
     database_ok = check_connection()
     storage_ok = storage_configured()
     payload = {
-        "status": "ok" if database_ok and storage_ok else "degraded",
+        "status": "ok" if database_ok else "degraded",
         "llm_mode": "live" if settings.gemini_api_key else "template",
         "web_search": "configured" if settings.tavily_api_key else "not_configured",
         "database": "connected" if database_ok else "unreachable",
-        "object_storage": "configured" if storage_ok else "not_configured",
+        "object_storage": "configured (supabase)" if storage_ok else "local_fallback",
     }
     # Return HTTP 200 with diagnostics payload so Render and cloud health checks
     # keep the service alive. Status will be 'ok' or 'degraded'.

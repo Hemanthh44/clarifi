@@ -27,7 +27,8 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Override whatever alembic.ini has with the real, env-driven URL.
-config.set_main_option("sqlalchemy.url", _normalized_database_url())
+# Escape % to %% so configparser doesn't fail on URL-encoded password characters.
+config.set_main_option("sqlalchemy.url", _normalized_database_url().replace("%", "%%"))
 
 target_metadata = Base.metadata
 
