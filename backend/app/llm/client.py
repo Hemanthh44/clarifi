@@ -67,7 +67,11 @@ class LLMClient:
                 err_str = str(exc)
                 if attempt == 0 and ("429" in err_str or "ResourceExhausted" in err_str or "quota" in err_str.lower()):
                     logger.warning("Gemini rate limit hit, backing off briefly: %s", exc)
-                    time.sleep(2.0)
+                    time.sleep(2.5)
+                    continue
+                if attempt == 0 and ("404" in err_str or "not found" in err_str.lower() or "permission" in err_str.lower()) and self.model != "gemini-3.5-flash-lite":
+                    logger.warning("Model %s unavailable, falling back to gemini-3.5-flash-lite: %s", self.model, exc)
+                    self.model = "gemini-3.5-flash-lite"
                     continue
                 raise
 
@@ -163,9 +167,9 @@ class LLMClient:
             )
             answer = data.get("answer") or data.get("direct_answer") or data.get("summary")
             key_points = data.get("key_points") or data.get("key_takeaways") or data.get("points")
-            if answer and key_points:
-                data["answer"] = answer
-                data["key_points"] = key_points
+            if answer or data.get("explanation"):
+                data["answer"] = answer or data.get("explanation")
+                data["key_points"] = key_points if isinstance(key_points, list) else []
                 return self._normalize_structured(data)
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Gemini narrate_grounded_answer failed, using template: %s", exc)

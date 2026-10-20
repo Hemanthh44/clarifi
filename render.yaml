@@ -30,7 +30,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: CLARIFI_LLM_MODEL
-        value: gemini-2.5-flash-lite
+        value: gemini-3.5-flash-lite
       - key: TAVILY_API_KEY
         sync: false
       - key: CLARIFI_TAVILY_MAX_RESULTS
