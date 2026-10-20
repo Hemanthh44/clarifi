@@ -93,3 +93,10 @@ def get_settings() -> Settings:
         settings.jwt_secret = secrets.token_urlsafe(48)
 
     return settings
+
+
+def reload_settings() -> Settings:
+    """Clear LRU cache and re-read .env variables into Settings."""
+    load_dotenv(ENV_FILE, override=True)
+    get_settings.cache_clear()
+    return get_settings()

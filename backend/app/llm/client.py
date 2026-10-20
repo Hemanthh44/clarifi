@@ -202,18 +202,30 @@ class LLMClient:
         direct_answer = first_sentence(top["text"])
         key_points = [first_sentence(c["text"], 160) for c in chunks[1:5]]
 
-        return {
-            "answer": direct_answer,
-            "explanation": (
+        settings = get_settings()
+        if settings.gemini_api_key:
+            explanation = (
+                f"This is the most relevant passage found in {top['doc']} (page {top['page']}) "
+                "for your question. Live LLM synthesis was temporarily unavailable, so ClariFi is "
+                "showing the strongest matching excerpt directly."
+            )
+            next_steps = ["Try asking again in a few moments or rephrase your question."]
+        else:
+            explanation = (
                 f"This is the most relevant passage found in {top['doc']} (page {top['page']}) "
                 "for your question. No LLM is configured right now (GEMINI_API_KEY is unset), so "
                 "ClariFi is showing the strongest matching excerpt directly rather than "
                 "synthesizing a fuller explanation."
-            ),
+            )
+            next_steps = ["Set GEMINI_API_KEY in backend/.env for fuller, synthesized explanations."]
+
+        return {
+            "answer": direct_answer,
+            "explanation": explanation,
             "key_points": key_points,
             "why_it_matters": None,
             "risks": [],
-            "next_steps": ["Set GEMINI_API_KEY in backend/.env for fuller, synthesized explanations."],
+            "next_steps": next_steps,
         }
 
     # -- Live web answer narration ----------------------------------------
@@ -296,12 +308,18 @@ class LLMClient:
             if item.get("content")
         ]
 
+        settings = get_settings()
+        explanation = (
+            "Live LLM synthesis was temporarily unavailable, so this is drawn directly "
+            "from the retrieved web sources rather than synthesized further."
+            if settings.gemini_api_key
+            else "No LLM is configured right now (GEMINI_API_KEY is unset), so this is drawn "
+            "directly from the retrieved web sources rather than synthesized further."
+        )
+
         return {
             "answer": direct_answer,
-            "explanation": (
-                "No LLM is configured right now (GEMINI_API_KEY is unset), so this is drawn "
-                "directly from the retrieved web sources rather than synthesized further."
-            ),
+            "explanation": explanation,
             "key_points": key_points,
             "why_it_matters": None,
             "risks": ["Figures and rates in these sources can change — check the publish date before relying on them."],
@@ -456,6 +474,14 @@ _client: Optional[LLMClient] = None
 
 def get_llm_client() -> LLMClient:
     global _client
-    if _client is None:
-        _client = LLMClient()
+    # If uninitialized or currently stuck in template mode, check if a key
+    # was configured in .env and reload without needing a server restart.
+    if _client is None or _client.template_mode:
+        from app.config import reload_settings
+
+        reload_settings()
+        candidate = LLMClient()
+        if not candidate.template_mode or _client is None:
+            _client = candidate
     return _client
+
