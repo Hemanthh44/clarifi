@@ -12,6 +12,12 @@ ACTION_QUERIES = {
 
 def retrieve(query: str, top_k: int = 4, document_filter: str | None = None, action: str = "ask") -> list[dict]:
     store = get_vector_store()
+    if not store.chunks or (document_filter and document_filter not in store.documents):
+        from app.rag.ingest import rebuild_index_from_db
+
+        rebuild_index_from_db()
+        store = get_vector_store()
+
     expanded = f"{query} {ACTION_QUERIES.get(action, '')}".strip()
 
     if action == "summarize" and document_filter:
@@ -20,7 +26,10 @@ def retrieve(query: str, top_k: int = 4, document_filter: str | None = None, act
         return _merge(semantic, representative, limit=12)
 
     limit = 8 if action in {"risks", "compare"} else top_k
-    return store.search(expanded, top_k=limit, document_filter=document_filter)
+    results = store.search(expanded, top_k=limit, document_filter=document_filter)
+    if not results and document_filter:
+        results = store.representative(document_filter, limit=limit)
+    return results
 
 
 def _merge(primary: list[dict], secondary: list[dict], limit: int) -> list[dict]:

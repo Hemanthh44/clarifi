@@ -53,24 +53,41 @@ class LLMClient:
         if json_output:
             config_kwargs["response_mime_type"] = "application/json"
 
-        response = self._client.models.generate_content(
-            model=self.model,
-            contents=contents,
-            config=types.GenerateContentConfig(**config_kwargs),
-        )
-        return (response.text or "").strip()
+        import time
+
+        for attempt in range(2):
+            try:
+                response = self._client.models.generate_content(
+                    model=self.model,
+                    contents=contents,
+                    config=types.GenerateContentConfig(**config_kwargs),
+                )
+                return (response.text or "").strip()
+            except Exception as exc:
+                err_str = str(exc)
+                if attempt == 0 and ("429" in err_str or "ResourceExhausted" in err_str or "quota" in err_str.lower()):
+                    logger.warning("Gemini rate limit hit, backing off briefly: %s", exc)
+                    time.sleep(2.0)
+                    continue
+                raise
 
     @staticmethod
     def _parse_json(text: str) -> dict:
-        """Parse Gemini JSON, tolerating accidental markdown fences."""
+        """Parse Gemini JSON, tolerating markdown fences and leading/trailing text."""
         cleaned = text.strip()
-        if cleaned.startswith("```"):
-            lines = cleaned.splitlines()
-            if lines and lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            cleaned = "\n".join(lines).strip()
+        if "```" in cleaned:
+            start = cleaned.find("```")
+            end = cleaned.rfind("```")
+            if end > start:
+                inner = cleaned[start:end]
+                inner_lines = inner.split("\n", 1)
+                cleaned = inner_lines[1] if len(inner_lines) > 1 else inner
+
+        first_brace = cleaned.find("{")
+        last_brace = cleaned.rfind("}")
+        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+            cleaned = cleaned[first_brace : last_brace + 1]
+
         return json.loads(cleaned)
 
     # -- Intent classification (Orchestrator routing) -------------------
@@ -140,11 +157,15 @@ class LLMClient:
                 self._generate(
                     system=system,
                     contents=f"Question: {question}\n\nExcerpts:\n{context}",
-                    max_output_tokens=800,
+                    max_output_tokens=1500,
                     json_output=True,
                 )
             )
-            if "answer" in data and "key_points" in data:
+            answer = data.get("answer") or data.get("direct_answer") or data.get("summary")
+            key_points = data.get("key_points") or data.get("key_takeaways") or data.get("points")
+            if answer and key_points:
+                data["answer"] = answer
+                data["key_points"] = key_points
                 return self._normalize_structured(data)
         except Exception as exc:  # pragma: no cover - defensive
             logger.warning("Gemini narrate_grounded_answer failed, using template: %s", exc)
