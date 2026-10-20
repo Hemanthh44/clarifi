@@ -98,6 +98,7 @@ app.include_router(documents.router)
 app.include_router(history.router)
 app.include_router(ml.router)
 app.include_router(image.router)
+# Trigger reload for live market data endpoint
 
 
 @app.get("/api/health")

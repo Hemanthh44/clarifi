@@ -18,6 +18,7 @@ import { StatCard, AssetMixCard } from "../components/FinancialCards";
 import { RiskScoreCard } from "../components/RiskScore";
 import { Skeleton } from "../components/States";
 import Button from "../components/Button";
+import LiveMarketPulse from "../components/LiveMarketPulse";
 import { getPortfolio } from "../lib/api";
 import { useAuth } from "../lib/auth";
 
@@ -146,6 +147,9 @@ export default function Dashboard() {
             </button>
           ))}
         </div>
+
+        {/* ── Live Market Pulse Section ────────────────────── */}
+        <LiveMarketPulse className="mb-8" />
 
         {/* ── Portfolio State Section ──────────────────────── */}
         {loading ? (

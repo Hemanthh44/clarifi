@@ -70,3 +70,11 @@ def rl_info() -> dict:
         "epsilon_min": agent.epsilon_min,
         "convergence": agent.training_convergence[-5:],
     }
+
+
+@router.get("/market/live-pulse")
+def market_live_pulse() -> dict:
+    """Returns real-time benchmark quotes (NIFTY 50, SENSEX, VIX, Gold) and live regime."""
+    from app.risk_engine.live_market import get_live_market_pulse
+
+    return get_live_market_pulse()

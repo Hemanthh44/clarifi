@@ -37,6 +37,7 @@ import {
 import AppLayout from "../layouts/AppLayout";
 import { Card, Badge, PageHeader, Panel } from "../components/Basics";
 import Button from "../components/Button";
+import LiveMarketPulse from "../components/LiveMarketPulse";
 import { predictRisk, rebalancePortfolio, runMonteCarlo, getPortfolio, runRLSimulation } from "../lib/api";
 
 const money = (n) => "₹" + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
@@ -956,6 +957,13 @@ export default function MlLab() {
         {/* ========================================================= */}
         {activeTab === "rl-agent" && (
           <div className="space-y-8">
+            {/* Live Benchmark Stream & Current Market Climate */}
+            <LiveMarketPulse
+              initialData={rlResult?.live_market}
+              showLinkToLab={false}
+              className="shadow-sm"
+            />
+
             {/* Top Parameters Card */}
             <Card className="p-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-[#EDE7EB]">
@@ -1375,9 +1383,24 @@ export default function MlLab() {
                               : "bg-emerald-100 text-emerald-700";
 
                           return (
-                            <tr key={step.year} className="hover:bg-[#FAF7F9]/80 transition-colors">
-                              <td className="py-3 px-3 font-mono font-bold text-text-primary">
-                                Yr {step.year}
+                            <tr
+                              key={step.year}
+                              className={`transition-colors ${
+                                step.is_live_market
+                                  ? "bg-emerald-50/40 hover:bg-emerald-50/70 border-l-2 border-emerald-500"
+                                  : "hover:bg-[#FAF7F9]/80"
+                              }`}
+                            >
+                              <td className="py-3 px-3 font-mono font-bold text-text-primary whitespace-nowrap">
+                                <div className="flex items-center gap-1.5">
+                                  <span>Yr {step.year}</span>
+                                  {step.is_live_market && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6rem] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                      LIVE
+                                    </span>
+                                  )}
+                                </div>
                               </td>
                               <td className="py-3 px-3">
                                 <span
@@ -1410,8 +1433,15 @@ export default function MlLab() {
                               <td className="py-3 px-3 font-mono font-bold text-text-primary">
                                 {money(step.portfolio_value)}
                               </td>
-                              <td className="py-3 px-3 text-text-secondary text-[0.72rem] max-w-xs">
-                                {step.rationale}
+                              <td className="py-3 px-3 text-text-secondary text-[0.72rem] max-w-xs leading-relaxed">
+                                {step.is_live_market ? (
+                                  <div>
+                                    <span className="font-bold text-emerald-800">[Live Market Feed]</span>{" "}
+                                    {step.rationale.replace(/^\[Live Market\]\s*/, "")}
+                                  </div>
+                                ) : (
+                                  step.rationale
+                                )}
                               </td>
                             </tr>
                           );

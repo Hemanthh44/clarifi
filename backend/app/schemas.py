@@ -338,6 +338,7 @@ class RLSimulateRequest(BaseModel):
 class RLYearStep(BaseModel):
     year: int
     regime: str
+    is_live_market: bool = False
     action: str
     action_label: str
     rationale: str
@@ -378,3 +379,4 @@ class RLSimulateResponse(BaseModel):
     training_convergence: list[dict]
     actions_catalog: list[dict]
     model_metadata: dict
+    live_market: dict | None = None

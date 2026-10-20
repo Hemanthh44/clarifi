@@ -316,17 +316,29 @@ def simulate_rl_portfolio(
     agent = get_trained_rl_agent()
     rng = np.random.default_rng(101)  # Fixed seed for repeatable comparison across strategies
 
-    # Pre-generate stochastic market returns for identical comparison across strategies
+    from app.risk_engine.live_market import get_live_market_pulse
+
+    live_market = get_live_market_pulse()
+    live_regime_id = live_market.get("regime", {}).get("id", 1)
+
     regimes_history: list[dict[str, Any]] = []
     market_returns_history: list[dict[str, float]] = []
 
-    for _ in range(horizon_years):
-        regime_id = int(rng.choice([0, 1, 2], p=[0.20, 0.55, 0.25]))
+    for i in range(horizon_years):
+        if i == 0:
+            regime_id = live_regime_id
+        else:
+            regime_id = int(rng.choice([0, 1, 2], p=[0.20, 0.55, 0.25]))
+
         regime_meta = REGIMES[regime_id]
         eq_ret = float(rng.normal(regime_meta["equity_mean"], regime_meta["equity_vol"]))
         db_ret = float(rng.normal(regime_meta["debt_mean"], regime_meta["debt_vol"]))
         ot_ret = 0.055
-        regimes_history.append({"id": regime_id, "name": regime_meta["name"]})
+        regimes_history.append({
+            "id": regime_id,
+            "name": regime_meta["name"],
+            "is_live": (i == 0),
+        })
         market_returns_history.append({"equity": eq_ret, "debt": db_ret, "others": ot_ret})
 
     # ----------------------------------------------------
@@ -379,9 +391,14 @@ def simulate_rl_portfolio(
         else:
             rationale = "Emergency capital preservation: shifted 20% to safe debt to mitigate severe bear drop."
 
+        is_live = regime_obj.get("is_live", False)
+        if is_live:
+            rationale = f"[Live Market] {live_market.get('regime', {}).get('rationale', rationale)}"
+
         rl_timeline.append({
             "year": y,
             "regime": regime_obj["name"],
+            "is_live_market": is_live,
             "action": action_meta["name"],
             "action_label": action_meta["label"],
             "rationale": rationale,
@@ -538,4 +555,5 @@ def simulate_rl_portfolio(
             "optimization_goal": "Maximized Risk-Adjusted Wealth with Capital Preservation",
             "horizon_years": horizon_years,
         },
+        "live_market": live_market,
     }

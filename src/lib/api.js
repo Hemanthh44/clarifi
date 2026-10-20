@@ -383,6 +383,10 @@ export function getRLInfo() {
   return request("/api/ml/rl/info");
 }
 
+export function getMarketLivePulse() {
+  return request("/api/ml/market/live-pulse");
+}
+
 
 // ============================================================
 // IMAGE ANALYSIS
